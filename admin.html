@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Portofolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { primary: '#facc15', primaryHover: '#eab308', dark: '#111827' }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="font-sans bg-gray-50 text-gray-800">
+
+    <!-- LOGIN SECTION -->
+    <div id="login-section" class="min-h-screen flex items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 w-full max-w-md">
+            <h2 class="text-2xl font-bold text-dark mb-6 text-center">Admin Login</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="email" required class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="password" required class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
+                </div>
+                <button type="submit" class="w-full bg-dark text-white font-semibold py-3 rounded-xl hover:bg-gray-800 transition-colors mt-2">
+                    Masuk
+                </button>
+                <p id="login-error" class="text-red-500 text-sm text-center hidden mt-2"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- DASHBOARD SECTION -->
+    <div id="dashboard-section" class="hidden min-h-screen pb-20">
+        <nav class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
+            <h1 class="text-xl font-bold text-dark">Portofolio Admin</h1>
+            <button id="logout-btn" class="text-sm font-medium text-red-600 hover:text-red-800 transition-colors">Logout</button>
+        </nav>
+
+        <div class="max-w-6xl mx-auto px-6 mt-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <!-- Form Upload/Edit -->
+            <div class="lg:col-span-1">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 sticky top-24">
+                    <h2 id="form-title" class="text-lg font-bold text-dark mb-5">Upload Proyek Baru</h2>
+                    <form id="upload-form" class="space-y-4">
+                        <!-- Hidden inputs untuk state Edit -->
+                        <input type="hidden" id="edit-id" value="">
+                        <input type="hidden" id="existing-image-url" value="">
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Judul Proyek</label>
+                            <input type="text" id="title" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                            <select id="category" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none">
+                                <option value="webapp">Web App / Website</option>
+                                <option value="gis">GIS / Data</option>
+                                <option value="mobile webapp">Mobile / PWA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Link Proyek</label>
+                            <input type="url" id="link" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Singkat</label>
+                            <textarea id="description" rows="4" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Gambar (Thumbnail)</label>
+                            <p id="image-hint" class="text-xs text-gray-500 mb-2 hidden">Biarkan kosong jika tidak ingin mengubah gambar.</p>
+                            <input type="file" id="image" accept="image/*" required class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100">
+                        </div>
+                        
+                        <div class="flex gap-2 mt-4">
+                            <button type="submit" id="submit-btn" class="w-full bg-primary text-dark font-bold py-2.5 rounded-xl hover:bg-primaryHover transition-colors">
+                                Upload Proyek
+                            </button>
+                            <button type="button" id="cancel-edit-btn" class="hidden px-4 bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl hover:bg-gray-300 transition-colors">
+                                Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- List Proyek -->
+            <div class="lg:col-span-2">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <h2 class="text-lg font-bold text-dark mb-5">Daftar Proyek</h2>
+                    <div id="loading-state" class="text-center text-gray-500 py-10">Memuat data...</div>
+                    <div id="projects-list" class="space-y-4 hidden">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <script src="admin.js"></script>
+</body>
+</html>
